@@ -7,18 +7,37 @@ const port = 3004
 app.use(express.json())
 
 
-app.post('/cards', (req,res,next) => {
+app.post('/cards', (req, res, next) => {
+    try {
+        const { title, date } = req.body;
 
-    const newCard = {
-        title: req.body.title,
-        date: req.body.date 
+        // Validações dos dados de entrada
+        if (!title || typeof title !== 'string' || title.trim() === '') {
+            return res.status(400).json({ error: "O título é obrigatório e deve ser uma string válida." });
+        }
+
+        if (!date || typeof date !== 'number' || date <= 0 || date > 31) {
+            return res.status(400).json({ error: "A data de vencimento deve ser um número entre 1 e 31." });
+        }
+
+        // Criação do novo cartão
+        const newCard = {
+            title: title.trim(),
+            date
+        };
+
+        // Salva o cartão no banco de dados
+        const cardSaved = databaseCard.saveCard(newCard);
+
+        // Retorna o cartão salvo
+        res.status(201).json(cardSaved);
+    } catch (error) {
+        // Tratamento genérico de erros
+        console.error(error);
+        res.status(500).json({ error: "Internal server error, please try again later" });
     }
+});
 
-    const cardSaved = databaseCard.saveCard(newCard)
-
-    res.status(201).json(cardSaved)
-
-})
 
 app.get('/cards', (req,res,next) => {
 
