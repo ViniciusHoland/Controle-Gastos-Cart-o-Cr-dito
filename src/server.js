@@ -20,6 +20,15 @@ app.post('/cards', (req,res,next) => {
 
 })
 
+app.get('/cards', (req,res,next) => {
+
+    const allCards = databaseCard.getCards()
+
+    res.status(200).json(allCards)
+
+})
+
+
 
 
 app.listen(port, () => {

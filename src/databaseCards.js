@@ -22,4 +22,12 @@ function saveCard(cardToSave){
     return cardToSave
 }
 
-module.exports = {saveCard}
+
+function getCards(){
+
+    return Object.values(cards)
+
+
+}
+
+module.exports = {saveCard,getCards}
