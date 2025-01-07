@@ -49,9 +49,13 @@ function getCardById(id) {
 }
 
 function savedAccountInCard(idCard, account) {
-  const cardToSaveAccount = getCards().find((cartao) => cartao.id === idCard);
+  const cardToSaveAccount = getCardById(parseInt(idCard))
 
-  cardToSaveAccount.push(account);
+    if(!cardToSaveAccount){
+        throw new Error(`Card with ID ${idCard} not found`)
+    }
+
+  cardToSaveAccount.accounts.push(account)
 
   return account;
 }

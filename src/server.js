@@ -29,22 +29,37 @@ app.get('/cards', (req,res,next) => {
 })
 
 
-app.post('/card/:id/accounts',(req,res,next) => {
+app.post('/cards/:id/accounts',(req,res,next) => {
 
     const idCard = req.params.id
     const {description, amount, parcel} = req.body
 
+    // Validação de dados
+    if (!description || typeof description !== 'string' || description.trim() === '') {
+        return res.status(400).json({ error: "Descrição é obrigatória e deve ser uma string válida." });
+    }
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+        return res.status(400).json({ error: "O valor deve ser um número maior que zero." });
+    }
+    if (!parcel || typeof parcel !== 'number' || parcel <= 0) {
+        return res.status(400).json({ error: "A parcela deve ser um número maior que zero." });
+    }
+
     const account = { 
 
-        description,
+        description : description.trim(),
         amount,
         parcel
 
     }
 
-    const accountSaved = databaseCard.savedAccountInCard(idCard,account)
+    try{
+        const accountSaved = databaseCard.savedAccountInCard(idCard,account)
+        res.status(201).json(accountSaved)
+    } catch (error) {
+        res.status(400).json({error: error.message})
+    }
 
-    res.status(201).json(accountSaved)
 
 })
 
