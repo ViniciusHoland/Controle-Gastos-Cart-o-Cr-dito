@@ -29,7 +29,24 @@ app.get('/cards', (req,res,next) => {
 })
 
 
+app.post('/card/:id/accounts',(req,res,next) => {
 
+    const idCard = req.params.id
+    const {description, amount, parcel} = req.body
+
+    const account = { 
+
+        description,
+        amount,
+        parcel
+
+    }
+
+    const accountSaved = databaseCard.savedAccountInCard(idCard,account)
+
+    res.status(201).json(accountSaved)
+
+})
 
 app.listen(port, () => {
     console.log('projeto rodando na porta ' + port)
