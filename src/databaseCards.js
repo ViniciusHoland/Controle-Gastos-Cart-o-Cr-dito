@@ -5,6 +5,13 @@ const sequence = {
   },
 };
 
+const sequenceAccount = {
+  _id: 1,
+  get id() {
+    return this._id++;
+  },
+};
+
 const cards = [
   {
     id: sequence.id,
@@ -44,7 +51,14 @@ function getCardById(id) {
   return cards.find(card => card.id === id) || {}
 }
 
+function getAccountById(id,card){
 
+  if (!card || !card.accounts) {
+    throw new Error('Cards or accounts is undefined');
+  }
+
+  return card.accounts.find(account => account.id === id)
+}
 
 
 function savedAccountInCard(idCard, account, isCurrent) {
@@ -81,6 +95,7 @@ function savedAccountInCard(idCard, account, isCurrent) {
   }
 
   const newAccount = {
+    id: sequenceAccount.id,
     ...account,
     parcels, // adiciona as parcelas
   }
@@ -90,13 +105,27 @@ function savedAccountInCard(idCard, account, isCurrent) {
   return account;
 }
 
-function addAccountToCard(idCard, account){
+function deleteAccountToCard(idCard, idAccount){
 
+  const cardToSaveAccount = getCardById(parseInt(idCard))
 
+  if(!cardToSaveAccount){
+    throw new Error(`Card with ID ${idCard} not found`)
+  }
+
+  const accountIndex = cardToSaveAccount.accounts.findIndex(account => account.id === parseInt(idAccount))
+
+  if (accountIndex === -1) {
+    throw new Error(`Account with ID ${idAccount} not associated with this card`);
+  }
+
+  const removedAccount = cardToSaveAccount.accounts.splice(accountIndex,1)[0]
+
+  return removedAccount
 
 }
 
 
 
 
-module.exports = { saveCard, getCards, getCardById, savedAccountInCard };
+module.exports = { saveCard, getCards, getCardById, savedAccountInCard , deleteAccountToCard};

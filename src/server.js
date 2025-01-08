@@ -89,6 +89,17 @@ app.post('/cards/:id/accounts',(req,res,next) => {
 
 })
 
+app.delete('/cards/:id/accounts', (req,res,next) => {
+
+    const idCard = req.params.id
+    const idAccount = req.body.idAccount
+
+    const accountRemoved = databaseCard.deleteAccountToCard(idCard,idAccount)
+
+    res.status(200).json(accountRemoved)
+
+})
+
 app.listen(port, () => {
     console.log('projeto rodando na porta ' + port)
 })
