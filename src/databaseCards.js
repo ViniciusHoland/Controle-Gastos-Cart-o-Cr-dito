@@ -45,6 +45,19 @@ function getCards() {
   return cards;
 }
 
+function deleteCard(idCard){
+
+  const indexCard = cards.findIndex(card => card.id === parseInt(idCard))
+
+  if(indexCard === -1) {
+    throw new Error(`Card with ID ${id} not found`);
+  }
+
+  const cardToDelete =  cards.splice(indexCard,1)[0]
+
+  return cardToDelete
+
+}
 
 
 function getCardById(id) {
@@ -128,4 +141,4 @@ function deleteAccountToCard(idCard, idAccount){
 
 
 
-module.exports = { saveCard, getCards, getCardById, savedAccountInCard , deleteAccountToCard};
+module.exports = { saveCard, getCards, getCardById, savedAccountInCard , deleteAccountToCard, deleteCard};

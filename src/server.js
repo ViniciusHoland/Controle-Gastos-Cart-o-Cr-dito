@@ -100,6 +100,17 @@ app.delete('/cards/:id/accounts', (req,res,next) => {
 
 })
 
+app.delete('/cards/:id', (req,res,next) => {
+
+    const idCard = req.params.id
+
+    const cardToDelete = databaseCard.deleteCard(idCard)
+
+    res.status(200).json(cardToDelete)
+
+})
+
+
 app.listen(port, () => {
     console.log('projeto rodando na porta ' + port)
 })
