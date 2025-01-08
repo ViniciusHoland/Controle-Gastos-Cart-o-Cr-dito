@@ -51,7 +51,7 @@ app.get('/cards', (req,res,next) => {
 app.post('/cards/:id/accounts',(req,res,next) => {
 
     const idCard = req.params.id
-    const {description, amount, parcel} = req.body
+    const {description, amount, parcel, currentMonth} = req.body
 
     // Validação de dados
     if (!description || typeof description !== 'string' || description.trim() === '') {
@@ -64,16 +64,23 @@ app.post('/cards/:id/accounts',(req,res,next) => {
         return res.status(400).json({ error: "A parcela deve ser um número maior que zero." });
     }
 
+
+    if (!currentMonth || typeof currentMonth !== 'string' || description.trim() === '') {
+        return res.status(400).json({ error: "Mes Atual é obrigatória e deve ser um campo válido."});
+    }
+
+    const bolleanMothIsCurrent = currentMonth === "true"
+
     const account = { 
 
         description : description.trim(),
         amount,
-        parcel
+        parcel,
 
     }
 
     try{
-        const accountSaved = databaseCard.savedAccountInCard(idCard,account)
+        const accountSaved = databaseCard.savedAccountInCard(idCard,account,bolleanMothIsCurrent)
         res.status(201).json(accountSaved)
     } catch (error) {
         res.status(400).json({error: error.message})
