@@ -21,9 +21,9 @@ const cards = [
   },
 ];
 
-function saveCard(cardToSave) {
+function saveCard(cardToSave, idCard = null) {
   // se não tiver id irá atribuir um novo Id
-  if (!cardToSave.id) {
+  if (!idCard) {
     cardToSave.id = sequence.id;
     cardToSave.accounts = [] // iniciliza um array de contas
     cards.push(cardToSave) // adiciona um novo cartao a lista 
@@ -31,9 +31,12 @@ function saveCard(cardToSave) {
 
   else {
     // tenta atualizar o cartao atraves do id 
-    const index = cards.findIndex(card => card.id = cardToSave.id)
+    const index = cards.findIndex(card => card.id === idCard)
     if(index !== -1){
-        cards[index] = cardToSave
+      // vai atualizar o cartão no indice encontrado
+        cards[index] = {...cards[index], ...cardToSave}
+    } else {
+      throw new Error("Card not found");
     }
   }
 
@@ -62,15 +65,6 @@ function deleteCard(idCard){
 
 function getCardById(id) {
   return cards.find(card => card.id === id) || {}
-}
-
-function getAccountById(id,card){
-
-  if (!card || !card.accounts) {
-    throw new Error('Cards or accounts is undefined');
-  }
-
-  return card.accounts.find(account => account.id === id)
 }
 
 
