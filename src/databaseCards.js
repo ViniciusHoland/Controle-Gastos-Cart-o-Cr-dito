@@ -1,3 +1,5 @@
+const CardDB = require('../models/card')
+
 const sequence = {
   _id: 1,
   get id() {
@@ -53,7 +55,7 @@ function deleteCard(idCard) {
   const indexCard = cards.findIndex(card => card.id === parseInt(idCard))
 
   if (indexCard === -1) {
-    throw new Error(`Card with ID ${idc} not found`);
+    throw new Error(`Card with ID ${idCard} not found`);
   }
 
   const cardToDelete = cards.splice(indexCard, 1)[0]
