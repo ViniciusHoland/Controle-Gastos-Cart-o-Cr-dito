@@ -162,7 +162,7 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
         await card.save()
 
         res.status(201).json({
-            message: 'Account created with sucessfull!',
+            message: 'Account created with sucessfully!',
             cardId: card._id,
             account: newAccount
         });
@@ -177,18 +177,34 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
 
 })
 
-/*app.delete('/cards/:id/accounts', (req, res, next) => {
+app.delete('/cards/:id/accounts', async (req, res, next) => {
     try {
         const idCard = req.params.id;
         const idAccount = req.body.idAccount;
 
-        const accountRemoved = databaseCard.deleteAccountToCard(idCard, idAccount);
-        res.status(200).json(accountRemoved);
+        const card = await Card.findById(idCard)
+
+        if (!card) {
+            return res.status(404).json({ error: "Card not found." });
+        }
+
+        const accountIndex = card.accounts.findIndex(account => account._id.toString() === idAccount)
+
+        if (accountIndex === -1) {
+            return res.status(404).json({ error: "Account not found." });
+        }
+
+        const accountRemoved = card.accounts.splice(accountIndex, 1)[0]
+
+        await card.save()
+        res.status(200).json({ message: "Account deleted successfully!" });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error(error);
+        res.status(400).json({ error: "Error deleting account." });
     }
 
 })
+/*
 
 app.delete('/cards/:id', (req, res, next) => {
 
