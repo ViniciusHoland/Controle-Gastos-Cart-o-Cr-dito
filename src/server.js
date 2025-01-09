@@ -52,16 +52,16 @@ app.post('/cards', async (req, res, next) => {
 
 app.get('/cards', async (req, res, next) => {
 
-    try{
+    try {
         const allCards = await Card.find()
 
-        if(!allCards || allCards.length ===0){
+        if (!allCards || allCards.length === 0) {
             return res.status(404).json({ error: "cards not found" });
         }
 
         res.status(200).json(allCards)
 
-    }catch (error) {
+    } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Error for found cards" });
     }
@@ -112,28 +112,49 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
 
     // Validação de dados
 
-    if (!description || !amount || !parcel || !currentMonth) {
+    if (!description || !amount || !parcel || currentMonth === undefined) {
         return res.status(400).json({ error: "Todos os campos são obrigatórios." });
     }
 
     const bolleanMothIsCurrent = currentMonth === "true"
 
+   
     try {
 
         const card = await Card.findById(idCard)
 
         if (!card) {
-            return res.status(404).json({ error: "Cartão não encontrado." });
+            return res.status(404).json({ error: "card not found." });
         }
 
+        const parcelValue = parseFloat((amount / parcel).toFixed(2))
+        const parcels = []
+
+        const currentDate = new Date()
+        currentDate.setDate(card.date)// define o dia do vencimento
+
+        const currentMonthOffset = bolleanMothIsCurrent  ? 0 : 1
+
+        for (let i = 0; i < parcel; i++) {
+
+            const dueDate = new Date(currentDate) // cria uma nova data com base na data Inicial
+            dueDate.setMonth(currentDate.getMonth() + i + currentMonthOffset) // incrementa 1 mes a cada parcela matendo o dia de vencimento
+
+            const formattedDate = `${String(dueDate.getDate()).padStart(2, "0")}/${String(
+                dueDate.getMonth() + 1
+            ).padStart(2, "0")}/${dueDate.getFullYear()}`;
+
+
+            parcels.push({
+                description: description.trim(),
+                parcel: i + 1,
+                parcelAmount: parcelValue,
+                dueDate: formattedDate // formata a data 
+            })
+        }
 
         const newAccount = {
-
-            description: description.trim(),
-            amount,
-            parcel,
-            currentMonth: bolleanMothIsCurrent
-
+            parcels, // adiciona as parcelas
         }
 
         card.accounts.push(newAccount)
@@ -150,7 +171,7 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
 
     catch (error) {
         console.error(error)
-        res.status(400).json({ error: "error for created card"})
+        res.status(400).json({ error: "error for created card" })
     }
 
 
