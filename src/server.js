@@ -87,10 +87,10 @@ app.put('/cards/:id', async (req, res, next) => {
         const card = await Card.findById(idCard)
 
         card.title = title
-        card.date = date 
+        card.date = date
 
         // Salva o cartão no banco de dados
-        card.save() 
+        card.save()
 
         // Retorna o cartão salvo
         res.status(201).json(card);
@@ -117,7 +117,7 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
 
     const bolleanMothIsCurrent = currentMonth === "true"
 
-   
+
     try {
 
         const card = await Card.findById(idCard)
@@ -132,7 +132,7 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
         const currentDate = new Date()
         currentDate.setDate(card.date)// define o dia do vencimento
 
-        const currentMonthOffset = bolleanMothIsCurrent  ? 0 : 1
+        const currentMonthOffset = bolleanMothIsCurrent ? 0 : 1
 
         for (let i = 0; i < parcel; i++) {
 
@@ -203,17 +203,29 @@ app.delete('/cards/:id/accounts', async (req, res, next) => {
     }
 
 })
-/*
 
-app.delete('/cards/:id', (req, res, next) => {
 
-    const idCard = req.params.id
+app.delete('/cards/:id', async (req, res, next) => {
 
-    const cardToDelete = databaseCard.deleteCard(idCard)
+    try {
 
-    res.status(200).json(cardToDelete)
+        const idCard = req.params.id
 
-})*/
+        const cardToDelete = await Card.findByIdAndDelete(idCard)
+
+        if (!cardToDelete) {
+            return res.status(404).json({ error: 'Card not found' })
+        }
+
+
+        res.status(200).json({ message: 'Card deleted successfully', card: cardToDelete });
+
+    } catch (error){
+        console.error(error);
+        res.status(500).json({ error: 'Error deleting card' });
+    }
+
+})
 
 
 app.listen(port, () => {
