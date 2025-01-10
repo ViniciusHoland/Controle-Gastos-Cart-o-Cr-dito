@@ -68,7 +68,7 @@ app.get('/cards', async (req, res, next) => {
 
 })
 
-/*app.put('/cards/:id', (req, res, next) => {
+app.put('/cards/:id', async (req, res, next) => {
 
     const idCard = req.params.id
 
@@ -84,17 +84,16 @@ app.get('/cards', async (req, res, next) => {
             return res.status(400).json({ error: "A data de vencimento deve ser um número entre 1 e 31." });
         }
 
-        // Criação do novo cartão
-        const newCard = {
-            title: title.trim(),
-            date
-        };
+        const card = await Card.findById(idCard)
+
+        card.title = title
+        card.date = date 
 
         // Salva o cartão no banco de dados
-        const cardSaved = databaseCard.saveCard(newCard, parseInt(idCard));
+        card.save() 
 
         // Retorna o cartão salvo
-        res.status(201).json(cardSaved);
+        res.status(201).json(card);
 
     } catch (error) {
         // Tratamento genérico de erros
@@ -102,7 +101,7 @@ app.get('/cards', async (req, res, next) => {
         res.status(500).json({ error: "Internal server error, please try again later" });
     }
 
-})*/
+})
 
 
 app.post('/cards/:id/accounts', async (req, res, next) => {
