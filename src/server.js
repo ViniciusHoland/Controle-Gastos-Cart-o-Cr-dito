@@ -1,5 +1,5 @@
 const express = require('express')
-const databaseCard = require('./databaseCards.js')
+const databaseCard = require('../srcDev/databaseCards.js')
 const connectDB = require('./database.js')
 const Card = require('../models/card.js')
 
