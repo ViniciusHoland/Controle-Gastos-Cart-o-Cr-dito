@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const databaseCard = require('../srcDev/databaseCards.js')
 const connectDB = require('./database.js')
 const Card = require('../models/card.js')
@@ -9,18 +10,20 @@ const port = 3004
 connectDB()
 
 app.use(express.json())
+app.use(cors())
 
 
 app.post('/cards', async (req, res, next) => {
     try {
-        const { title, date } = req.body;
+        const { title } = req.body;
+        const date = Number(req.body.date)
 
         // Validações dos dados de entrada
         if (!title || typeof title !== 'string' || title.trim() === '') {
             return res.status(400).json({ error: "O título é obrigatório e deve ser uma string válida." });
         }
 
-        if (!date || typeof date !== 'number' || date <= 0 || date > 31) {
+        if (!date || isNaN(date) || date <= 0 || date > 31) {
             return res.status(400).json({ error: "A data de vencimento deve ser um número entre 1 e 31." });
         }
 
@@ -32,14 +35,13 @@ app.post('/cards', async (req, res, next) => {
 
         const card = new Card(newCard)
 
-        card.save().then((savedCard) => {
-            console.log("Card saved with ID: ", savedCard)
+        const savedCard = await card.save();
+        console.log("Card saved with ID: ", savedCard);
 
-            res.status(201).json({
-                message: 'Card build with sucessfull'
-            })
-
-        })
+        res.status(201).json({
+            message: 'Card created successfully',
+            card: savedCard, // Retorne o card criado (opcional)
+        });
 
 
     } catch (error) {
@@ -103,6 +105,82 @@ app.put('/cards/:id', async (req, res, next) => {
 
 })
 
+app.get('/cards/:id', async (req, res, next) => {
+
+
+    try {
+
+        const idCard = req.params.id
+        const card = await Card.findById(idCard)
+
+        if (!card) {
+            return res.status(404).json({ error: "Card not found." });
+        }
+
+        // Calcular o total da próxima fatura
+        const currentDate = new Date();
+        const nextDueDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth() + 1,
+            card.date // Dia do vencimento configurado no cartão
+        );
+        nextDueDate.setHours(23, 59, 59, 999); // Final do próximo dia de vencimento
+
+        const convertDate = (dateString) => {
+            const [day, month, year] = dateString.split("/").map(Number); // Dividir pela "/"
+            return new Date(year, month - 1, day); // Criar objeto Date
+        };
+
+        // Filtrar contas com parcelas vencendo até o próximo vencimento
+        /*const accountsNext = card.accounts.filter((account) =>
+            account.parcels.some((parcel) => {
+                const parcelDate = convertDate(parcel.dueDate)
+                return parcelDate <= nextDueDate;  // Parcelas vencendo até a data configurada
+            })
+        );
+
+       
+        // Filtrar contas com parcelas já vencidas
+        const accountsDueNext = accountsNext.filter((account) => 
+            account.parcels.some((parcel ) => {
+                
+                  // Verificar se a data da parcela já passou
+                  const parcelDate = convertDate(parcel.dueDate);
+                  return parcelDate < currentDate; // Parcelas já vencidas
+
+            })
+
+        )*/
+
+        // Calcular o total de parcelas vencendo no próximo vencimento
+        const totalNextDue = card.accounts.reduce((accumulator, account) => {
+            const parcelSum = account.parcels
+                .filter((parcel) => {
+                    const parcelDate = convertDate(parcel.dueDate);
+                    return parcelDate >= currentDate && parcelDate <= nextDueDate;
+                    // Somente parcelas entre hoje e o próximo vencimento
+                })
+                .reduce((sum, parcel) => sum + parcel.parcelAmount, 0);
+            return accumulator + parcelSum;
+        }, 0);
+
+        // Adicionar o total da próxima fatura ao objeto do cartão
+        const cardWithTotal = {
+            ...card.toObject(),
+            totalNextDue, // Adiciona o total da próxima fatura
+        };
+
+        res.status(200).json(cardWithTotal);
+
+
+    } catch (error) {
+        // Tratamento genérico de erros
+        console.error(error);
+        res.status(500).json({ error: "Internal server error, please try again later" });
+    }
+
+})
+
 
 app.post('/cards/:id/accounts', async (req, res, next) => {
 
@@ -115,7 +193,7 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
         return res.status(400).json({ error: "Todos os campos são obrigatórios." });
     }
 
-    const bolleanMothIsCurrent = currentMonth === "true"
+    const isCurrentMonth = currentMonth === "true" || currentMonth === true
 
 
     try {
@@ -132,7 +210,7 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
         const currentDate = new Date()
         currentDate.setDate(card.date)// define o dia do vencimento
 
-        const currentMonthOffset = bolleanMothIsCurrent ? 0 : 1
+        const currentMonthOffset = isCurrentMonth ? 0 : 1
 
         for (let i = 0; i < parcel; i++) {
 
@@ -176,33 +254,46 @@ app.post('/cards/:id/accounts', async (req, res, next) => {
 
 })
 
-app.delete('/cards/:id/accounts', async (req, res, next) => {
+
+
+app.delete('/cards/:id/accounts/:idAccount', async (req, res, next) => {
     try {
         const idCard = req.params.id;
-        const idAccount = req.body.idAccount;
+        const idAccount = req.params.idAccount;
 
-        const card = await Card.findById(idCard)
+        console.log("Card ID:", idCard);
+        console.log("Account ID:", idAccount);
+
+        // Encontrar o cartão pelo ID
+        const card = await Card.findById(idCard);
 
         if (!card) {
             return res.status(404).json({ error: "Card not found." });
         }
 
-        const accountIndex = card.accounts.findIndex(account => account._id.toString() === idAccount)
+        // Encontrar o índice da conta no array
+        const accountIndex = card.accounts.findIndex(
+            (account) => account._id.toString() === idAccount
+        );
 
         if (accountIndex === -1) {
             return res.status(404).json({ error: "Account not found." });
         }
 
-        const accountRemoved = card.accounts.splice(accountIndex, 1)[0]
+        // Remover a conta do array
+        const removedAccount = card.accounts.splice(accountIndex, 1);
 
-        await card.save()
+        // Salvar as alterações no banco
+        await card.save();
+
+        console.log("Account deleted:", removedAccount);
         res.status(200).json({ message: "Account deleted successfully!" });
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error);
         res.status(400).json({ error: "Error deleting account." });
     }
+});
 
-})
 
 
 app.delete('/cards/:id', async (req, res, next) => {
@@ -220,7 +311,7 @@ app.delete('/cards/:id', async (req, res, next) => {
 
         res.status(200).json({ message: 'Card deleted successfully', card: cardToDelete });
 
-    } catch (error){
+    } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error deleting card' });
     }
