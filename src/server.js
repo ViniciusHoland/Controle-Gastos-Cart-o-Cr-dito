@@ -9,7 +9,11 @@ const PORT = process.env.PORT || 3000
 connectDB()
 
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+    origin: 'https://vocal-babka-e7e20f.netlify.app', // URL do frontend
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 
 
 app.post('/cards', async (req, res, next) => {
