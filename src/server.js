@@ -1,11 +1,10 @@
 const express = require('express')
 const cors = require('cors')
-const databaseCard = require('../srcDev/databaseCards.js')
 const connectDB = require('./database.js')
 const Card = require('../models/card.js')
 
 const app = express()
-//const port = 3004
+//const PORT = 3004
 
 connectDB()
 
@@ -320,5 +319,5 @@ app.delete('/cards/:id', async (req, res, next) => {
 
 
 app.listen(PORT, () => {
-    console.log('projeto rodando na porta ' + port)
+    console.log('projeto rodando na porta ' + PORT)
 })
