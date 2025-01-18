@@ -4,7 +4,7 @@ const { connectDB }= require('./database.js')
 const Card = require('../models/card.js')
 
 const app = express()
-//const PORT = 3004
+const PORT = process.env.PORT || 3000 
 
 connectDB()
 
