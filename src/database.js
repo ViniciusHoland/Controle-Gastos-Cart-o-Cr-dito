@@ -15,7 +15,7 @@ const connectDB = async () => {
     }
 };
 
-//module.exports = connectDB;
+module.exports = connectDB;
 
 module.exports = {
     mongoUri: process.env.MONGO_URI,
