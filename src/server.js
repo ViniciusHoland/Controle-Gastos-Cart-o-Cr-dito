@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const connectDB = require('./database.js')
+const { connectDB }= require('./database.js')
 const Card = require('../models/card.js')
 
 const app = express()
