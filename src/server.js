@@ -10,7 +10,7 @@ connectDB()
 
 app.use(express.json())
 app.use(cors({
-    origin: 'https://controlegastoscard.netlify.app/', // URL do frontend
+    origin: 'https://controlegastoscard.netlify.app', // URL do frontend
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
